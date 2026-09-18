@@ -36,7 +36,7 @@ pipeline {
                     bat "docker stop ${CONTAINER_NAME}"
                     bat "docker rm ${CONTAINER_NAME}"
                 }
-                bat "docker run -d -p 8080:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
+                bat "docker run -d -p 9090:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
                 echo 'Container deployed and running.'
             }
         }
