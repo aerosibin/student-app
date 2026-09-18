@@ -15,23 +15,26 @@ pipeline {
         }
         stage('Maven Build & Test') {
             steps {
-                sh 'mvn clean package'
+                // Using bat instead of sh for Windows
+                bat 'mvn clean package'
                 echo 'Application compiled and unit tests passed.'
             }
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME} .'
+                // Double quotes allow Groovy to inject the environment variables
+                bat "docker build -t ${IMAGE_NAME} ."
                 echo 'Docker image built successfully.'
             }
         }
         stage('Deploy Docker Container') {
             steps {
-                // Stop and remove the container if it's already running from a previous build
-                sh 'docker stop ${CONTAINER_NAME} || true'
-                sh 'docker rm ${CONTAINER_NAME} || true'
-                // Run the new container mapping host port 8080 to container port 8080
-                sh 'docker run -d -p 8080:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}'
+                // catchError prevents the pipeline from failing on first run when the container doesn't exist yet
+                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                    bat "docker stop ${CONTAINER_NAME}"
+                    bat "docker rm ${CONTAINER_NAME}"
+                }
+                bat "docker run -d -p 8080:8080 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
                 echo 'Container deployed and running.'
             }
         }
